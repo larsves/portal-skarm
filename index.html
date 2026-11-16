@@ -29,8 +29,9 @@
   .sun { background: radial-gradient(ellipse 55% 35% at 70% 68%, var(--glow), transparent 70%); opacity: .45; mix-blend-mode: screen; }
   .land svg { width: 100%; height: 100%; }
   .stars { opacity: var(--stars); }
-  .photo { background-size: cover; background-position: center; display: none; }
+  .photo { background-size: cover; background-position: center; display: none; opacity: 0; transition: opacity 3s ease-in-out; }
   .photo.on { display: block; }
+  .photo.on.show { opacity: 1; }
   .tint { background: linear-gradient(to bottom, var(--sky1), var(--sky2)); mix-blend-mode: multiply; opacity: 0; }
   .photo.on { filter: brightness(calc(1.3 - var(--dark))) saturate(1.05); }
   .photo.on ~ .tint { opacity: .7; mix-blend-mode: soft-light; }
@@ -159,7 +160,8 @@
       </g>
     </svg>
   </div>
-  <div class="photo" id="photo"></div>
+  <div class="photo" id="photoA"></div>
+  <div class="photo" id="photoB"></div>
   <div class="tint"></div>
   <div class="shade"></div>
 </div>
@@ -236,7 +238,8 @@ var CONFIG = {
   pickupDays: [1, 2, 3, 4, 5], // 1 = måndag ... 5 = fredag
   pickupFrom: "08:00",         // visa nedräkningen från denna tid
   spotifyClientId: "22f62abbb76649ca96649660cef3fe34",       // klistra in Client ID från developer.spotify.com
-  backgroundImage: "bg.jpg"    // tomt "" = ritat vinterlandskap
+  backgroundImages: ["bg.jpg", "bg1.jpg", "bg2.jpg", "bg3.jpg"], // tom lista = ritat vinterlandskap
+  rotateEveryMin: 10           // byt bakgrund var 10:e minut
 };
 
 // ----- Dygnsfärger: mjuk övergång mellan nyckeltider -----
@@ -269,10 +272,27 @@ function applyDayColors() {
   st.setProperty("--panel", "rgba(14, 20, 36, " + (0.46 - dark * 0.6).toFixed(3) + ")");
 }
 applyDayColors(); setInterval(applyDayColors, 30000);
-if (CONFIG.backgroundImage) {
-  var ph = document.getElementById("photo");
-  ph.style.backgroundImage = "url('" + CONFIG.backgroundImage + "')"; ph.className = "photo on";
-}
+// ----- Bakgrundsbilder som roterar med mjuk övertoning -----
+(function () {
+  var imgs = CONFIG.backgroundImages || [];
+  if (!imgs.length) return;
+  var layers = [document.getElementById("photoA"), document.getElementById("photoB")], front = 0;
+  var idx = Math.floor(Date.now() / (CONFIG.rotateEveryMin * 60000)) % imgs.length;
+  layers.forEach(function (l) { l.className = "photo on"; });
+  function show(i) {
+    var pre = new Image();
+    pre.onload = function () {
+      var next = layers[1 - front];
+      next.style.backgroundImage = "url('" + imgs[i] + "')";
+      next.className = "photo on show";
+      layers[front].className = "photo on";
+      front = 1 - front;
+    };
+    pre.src = imgs[i];
+  }
+  show(idx);
+  if (imgs.length > 1) setInterval(function () { idx = (idx + 1) % imgs.length; show(idx); }, CONFIG.rotateEveryMin * 60000);
+})();
 function store(k, v) { try { if (v === undefined) return localStorage.getItem(k);
   if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
 // ==========================

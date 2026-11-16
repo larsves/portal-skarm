@@ -46,8 +46,9 @@ Tryck ✕ för att dölja den resten av dagen. Ångrat dig? Tryck *🚗 Visa hä
 
 ## 5. Bakgrund och dygnsfärger
 Färgerna glider mjukt mellan natt, gryning, dag, solnedgång och kväll. Nyckeltiderna finns i `DAYCOLORS` i `index.html`.
-Standard är ett ritat vinterlandskap. Vill du ha ett foto: ladda ner en bild (t.ex. sök "snow landscape" på unsplash.com, fri licens),
-spara den som `bg.jpg` i repot och sätt `backgroundImage: "bg.jpg"`. Fotot får samma dygnstoning ovanpå.
+Standard är ett ritat vinterlandskap. Bakgrundsbilderna (`bg.jpg`, `bg1.jpg` …) roterar var 10:e minut med mjuk övertoning. Lägg till eller ta bort bilder i repot
+och i listan `backgroundImages` högst upp i `index.html`; ändra takten med `rotateEveryMin`. Bilderna får samma dygnstoning ovanpå.
+Håll bilderna runt 2400 px breda så laddar de snabbt på Portalen.
 
 ## 6. Portal-appen (APK)
 Mappen `android/` är en liten app som visar sidan i helskärm, håller skärmen vaken och öppnar Spotify-appen säkert.
