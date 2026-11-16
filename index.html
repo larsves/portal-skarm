@@ -548,6 +548,21 @@ $("np").onclick = function (e) { if (e.target.id === "npLogin") { spLogin(); ret
   setInterval(npProgress, 1000);
 })();
 
+// Ladda om automatiskt när en ny version av sidan har publicerats (kollar var 5:e minut)
+(function () {
+  var known = null;
+  function check() {
+    fetch(location.pathname + "?check=" + Date.now(), { method: "HEAD", cache: "no-store" })
+      .then(function (r) {
+        var v = r.headers.get("etag") || r.headers.get("last-modified");
+        if (!v) return;
+        if (known && v !== known) location.reload();
+        known = v;
+      }).catch(function () {});
+  }
+  check(); setInterval(check, 5 * 60000);
+})();
+
 // Ladda om sidan en gång per natt så den aldrig fastnar
 setInterval(function () { var d = new Date(); if (d.getHours() === 3 && d.getMinutes() === 0) location.reload(); }, 60000);
 </script>
