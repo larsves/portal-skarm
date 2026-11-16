@@ -52,35 +52,36 @@
 
   /* Klocka */
   .clock { display: flex; flex-direction: column; justify-content: center; }
-  #time { font-size: 19vmin; font-weight: 300; line-height: .95; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-  #date { font-size: 3.6vmin; color: var(--muted); margin-top: 1.4vmin; }
+  #time { font-size: 15vmin; font-weight: 300; line-height: .95; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  #date { font-size: 3.2vmin; color: var(--muted); margin-top: 1vmin; }
   #week { font-size: 2.4vmin; color: var(--muted); margin-top: .6vmin; }
 
   /* Väder */
   .weather { display: flex; flex-direction: column; }
   .now { display: flex; align-items: center; gap: 2.5vmin; margin-top: 1.2vmin; }
-  #wIcon { font-size: 11vmin; line-height: 1; }
-  #wTemp { font-size: 11vmin; font-weight: 300; line-height: 1; }
+  #wIcon { font-size: 9vmin; line-height: 1; }
+  #wTemp { font-size: 9vmin; font-weight: 300; line-height: 1; }
   #wDesc { font-size: 3vmin; }
   #wWind { font-size: 2.3vmin; color: var(--muted); margin-top: .4vmin; }
-  .hours { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1vmin; margin-top: auto; padding-top: 1.4vmin; }
-  .hour { text-align: center; padding: 1.2vmin 0; border-radius: 1.2vmin; background: rgba(255,255,255,.08); }
+  .hours { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1vmin; margin-top: auto; padding-top: 1.6vmin; }
+  .hour { text-align: center; padding: .8vmin 0; border-radius: 1.2vmin; background: rgba(255,255,255,.08); }
   .hour .h { font-size: 2vmin; color: var(--muted); }
-  .hour .i { font-size: 4.2vmin; margin: .5vmin 0; }
+  .hour .i { font-size: 3.6vmin; margin: .3vmin 0; }
   .hour .t { font-size: 2.6vmin; }
 
   /* Träning */
   .training { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1.6fr; gap: 3vmin; min-height: 0; padding: 2.6vmin 3vmin; overflow: hidden; }
   @media (orientation: portrait) { .training { grid-column: auto; grid-template-columns: 1fr; } }
-  .stats { display: flex; flex-direction: column; gap: 1.6vmin; }
-  .big { font-size: 8vmin; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stats { display: flex; flex-direction: column; gap: 1.4vmin; min-width: 0; min-height: 0; }
+  .big { font-size: 7vmin; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
   .big small { font-size: 3.4vmin; color: var(--muted); margin-left: .6vmin; }
   .split { height: 2.2vmin; border-radius: 1.1vmin; background: rgba(255,255,255,.12); overflow: hidden; display: flex; }
   .split .e { background: var(--easy); }
   .split .x { background: var(--hard); }
-  .legend { display: flex; gap: 3vmin; font-size: 2.3vmin; color: var(--muted); }
+  .legend { display: flex; flex-wrap: wrap; gap: .6vmin 3vmin; font-size: 2.3vmin; color: var(--muted); }
   .dot { display: inline-block; width: 1.6vmin; height: 1.6vmin; border-radius: 50%; margin-right: .8vmin; vertical-align: -.1vmin; }
-  #last { font-size: 2.4vmin; color: var(--muted); margin-top: auto; }
+  #last { font-size: 2.3vmin; color: var(--muted); margin-top: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #prev { font-size: 2.3vmin; color: var(--muted); margin-top: -.6vmin; }
   #last b { color: var(--text); font-weight: 500; }
 
   .chart { display: flex; flex-direction: column; min-height: 0; }
@@ -97,11 +98,11 @@
   .clock { position: relative; }
   .panel.clock { background: none; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
   .panel.clock #time { text-shadow: 0 .4vmin 2.4vmin rgba(0,0,0,.3); }
-  #pickup { display: none; align-items: center; gap: 1.6vmin; margin-top: 2.4vmin; align-self: flex-start;
-    background: rgba(255,255,255,.10); border: 1px solid var(--line); border-radius: 1.6vmin; padding: 1.2vmin 1.2vmin 1.2vmin 2vmin; }
+  #pickup { display: none; align-items: center; gap: 1.6vmin; margin-top: 1.8vmin; align-self: flex-start;
+    background: rgba(255,255,255,.10); border: 1px solid var(--line); border-radius: 1.6vmin; padding: .6vmin .8vmin .6vmin 1.8vmin; }
   #pickup.on { display: flex; }
   #pickup .pl { font-size: 2.3vmin; color: var(--muted); }
-  #pickup .pc { font-size: 4.2vmin; font-variant-numeric: tabular-nums; font-weight: 400; }
+  #pickup .pc { font-size: 3.6vmin; font-variant-numeric: tabular-nums; font-weight: 400; }
   #pickup.soon { border-color: var(--hard); }
   #pickup.soon .pc { color: var(--hard); }
   #pickup.go { background: var(--hard); border-color: var(--hard); animation: pulse 1.2s ease-in-out infinite alternate; }
@@ -114,12 +115,12 @@
   #pickupShow.on { display: block; }
 
   /* Nu spelas */
-  .np { grid-column: 1 / -1; display: none; align-items: center; gap: 2.4vmin; padding: 1.8vmin 2.4vmin; cursor: pointer; }
+  .np { grid-column: 1 / -1; display: none; align-items: center; gap: 2.4vmin; padding: 1.4vmin 2.4vmin; cursor: pointer; }
   .np.on { display: flex; }
   @media (orientation: portrait) { .np { grid-column: auto; } }
-  #npArt { width: 9vmin; height: 9vmin; border-radius: 1vmin; object-fit: cover; background: rgba(255,255,255,.12); flex: none; }
+  #npArt { width: 7.5vmin; height: 7.5vmin; border-radius: 1vmin; object-fit: cover; background: rgba(255,255,255,.12); flex: none; }
   .np .txt { flex: 1; min-width: 0; }
-  #npTitle { font-size: 3.2vmin; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #npTitle { font-size: 2.9vmin; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #npArtist { font-size: 2.4vmin; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: .3vmin; }
   .prog { height: .7vmin; background: rgba(255,255,255,.12); border-radius: .4vmin; margin-top: 1.2vmin; overflow: hidden; }
   #npBar { height: 100%; width: 0; background: #1db954; }
@@ -194,6 +195,7 @@
     <div class="stats">
       <div class="label">Träning denna vecka</div>
       <div class="big" id="tTotal">–</div>
+      <div id="prev"></div>
       <div>
         <div class="split"><div class="e" id="sEasy"></div><div class="x" id="sHard"></div></div>
         <div class="legend" style="margin-top:1.2vmin">
@@ -360,6 +362,10 @@ function renderTraining(data) {
     if (easy) { day.easy += a.minutes; totE += a.minutes; } else { day.hard += a.minutes; totH += a.minutes; }
   });
   var tot = totE + totH;
+  var prevMon = new Date(monday); prevMon.setDate(monday.getDate() - 7);
+  var pm = ymd(prevMon), tm = ymd(monday), prevTot = 0;
+  (data.activities || []).forEach(function (a) { if (a.date >= pm && a.date < tm) prevTot += a.minutes; });
+  $("prev").textContent = prevTot ? "Förra veckan " + fmtMin(prevTot) : "";
   var h = Math.floor(tot / 60), m = Math.round(tot % 60);
   $("tTotal").innerHTML = (h ? h + "<small>h</small> " : "") + m + "<small>min</small>";
   var pe = tot ? totE / tot * 100 : 0;
@@ -367,7 +373,7 @@ function renderTraining(data) {
   $("lEasy").textContent = "Lugnt " + fmtMin(totE) + (tot ? " (" + Math.round(pe) + " %)" : "");
   $("lHard").textContent = "Hårdare " + fmtMin(totH);
   $("last").innerHTML = last ? "Senast: <b>" + last.name + "</b> · " + fmtMin(last.minutes) +
-    (last.avg_hr ? " · snittpuls " + Math.round(last.avg_hr) : "") : "Inga pass än";
+    (last.avg_hr ? " · ♥ " + Math.round(last.avg_hr) : "") : "Inga pass än";
   var max = Math.max.apply(null, days.map(function (x) { return x.easy + x.hard; }).concat([30]));
   $("bars").innerHTML = days.map(function (x) {
     var t = x.easy + x.hard, hp = t / max * 100;
