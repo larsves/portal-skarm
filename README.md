@@ -26,7 +26,7 @@ Utan Strava-koppling visar sidan exempeldata.
    Kopiera `refresh_token` ur svaret.
 5. I repot: Settings → Secrets and variables → Actions → *New repository secret*:
    `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`, `STRAVA_REFRESH_TOKEN`.
-   Valfritt under fliken *Variables*: `EASY_HR` (standard 140) – pass med lägre snittpuls räknas som lugna.
+   Valfritt under fliken *Variables*: `EASY_HR` (standard 150) – pass med lägre snittpuls räknas som lugna.
 6. Actions → *Hämta Strava* → *Run workflow*. Därefter körs den två gånger i timmen.
 
 ## 3. Koppla Spotify (nu spelas)

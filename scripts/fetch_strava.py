@@ -2,7 +2,7 @@
 
 Körs av GitHub Actions. Kräver miljövariablerna
 STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET och STRAVA_REFRESH_TOKEN.
-EASY_HR (valfri, standard 140): pass med snittpuls under detta räknas som lugna.
+EASY_HR (valfri, standard 150): pass med snittpuls under detta räknas som lugna.
 """
 import json
 import os
@@ -48,7 +48,7 @@ def main():
 
     data = {
         "updated": datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%dT%H:%M"),
-        "easy_hr": int(os.environ.get("EASY_HR") or 140),
+        "easy_hr": int(os.environ.get("EASY_HR") or 150),
         "activities": out,
     }
     with open("training.json", "w", encoding="utf-8") as f:
