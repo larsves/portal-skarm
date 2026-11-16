@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kontoret</title>
+<style>
+  :root {
+    /* dygnsfärger – skrivs över av skriptet varje halvminut */
+    --sky1: #0b1026; --sky2: #1c2b4a; --far: #2a3858; --mid: #34466a; --near: #4a5f85;
+    --dark: .35; --stars: 1; --glow: #7aa7ff;
+    --panel: rgba(14, 20, 36, .22);
+    --line: rgba(255, 255, 255, .16);
+    --text: #f3f6fb;
+    --muted: rgba(235, 242, 252, .72);
+    --easy: #5fd0c3;
+    --hard: #f29a6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--sky1); color: var(--text);
+    font-family: "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden; -webkit-user-select: none; user-select: none; cursor: none;
+    text-shadow: 0 .1vmin .6vmin rgba(0, 0, 0, .25); }
+
+  /* Bakgrund: himmel + landskap (eller eget foto) + mörkning */
+  .bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; overflow: hidden; }
+  .bg > * { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; }
+  .sky { background: linear-gradient(to bottom, var(--sky1) 0%, var(--sky2) 70%); }
+  .sun { background: radial-gradient(ellipse 55% 35% at 70% 68%, var(--glow), transparent 70%); opacity: .45; mix-blend-mode: screen; }
+  .land svg { width: 100%; height: 100%; }
+  .stars { opacity: var(--stars); }
+  .photo { background-size: cover; background-position: center; display: none; }
+  .photo.on { display: block; }
+  .tint { background: linear-gradient(to bottom, var(--sky1), var(--sky2)); mix-blend-mode: multiply; opacity: 0; }
+  .photo.on { filter: brightness(calc(1.3 - var(--dark))) saturate(1.05); }
+  .photo.on ~ .tint { opacity: .7; mix-blend-mode: soft-light; }
+  .photo.on ~ .shade { opacity: .75; }
+  .shade { background: rgba(4, 8, 20, var(--dark)); }
+
+  .wrap { position: relative; z-index: 1; height: 100vh; display: grid; gap: 2.2vmin; padding: 72px 3vmin 3vmin; /* 72px: Portalens knappar ligger överst */
+    grid-template-columns: 1.05fr 1fr; grid-template-rows: auto 1fr auto; }
+  @media (orientation: portrait) {
+    .wrap { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; }
+  }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 2.6vmin; padding: 3vmin;
+    -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 1.2vmin 4vmin rgba(0, 0, 0, .18), inset 0 1px 0 rgba(255, 255, 255, .14); }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .panel { background: rgba(14, 20, 36, .62); }
+  }
+  .label { color: var(--muted); font-size: 2.1vmin; letter-spacing: .08em; text-transform: uppercase; }
+
+  /* Klocka */
+  .clock { display: flex; flex-direction: column; justify-content: center; }
+  #time { font-size: 19vmin; font-weight: 300; line-height: .95; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  #date { font-size: 3.6vmin; color: var(--muted); margin-top: 1.4vmin; }
+  #week { font-size: 2.4vmin; color: var(--muted); margin-top: .6vmin; }
+
+  /* Väder */
+  .weather { display: flex; flex-direction: column; }
+  .now { display: flex; align-items: center; gap: 2.5vmin; margin-top: 1.2vmin; }
+  #wIcon { font-size: 11vmin; line-height: 1; }
+  #wTemp { font-size: 11vmin; font-weight: 300; line-height: 1; }
+  #wDesc { font-size: 3vmin; }
+  #wWind { font-size: 2.3vmin; color: var(--muted); margin-top: .4vmin; }
+  .hours { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1vmin; margin-top: auto; padding-top: 1.4vmin; }
+  .hour { text-align: center; padding: 1.2vmin 0; border-radius: 1.2vmin; background: rgba(255,255,255,.08); }
+  .hour .h { font-size: 2vmin; color: var(--muted); }
+  .hour .i { font-size: 4.2vmin; margin: .5vmin 0; }
+  .hour .t { font-size: 2.6vmin; }
+
+  /* Träning */
+  .training { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1.6fr; gap: 3vmin; min-height: 0; padding: 2.6vmin 3vmin; overflow: hidden; }
+  @media (orientation: portrait) { .training { grid-column: auto; grid-template-columns: 1fr; } }
+  .stats { display: flex; flex-direction: column; gap: 1.6vmin; }
+  .big { font-size: 8vmin; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+  .big small { font-size: 3.4vmin; color: var(--muted); margin-left: .6vmin; }
+  .split { height: 2.2vmin; border-radius: 1.1vmin; background: rgba(255,255,255,.12); overflow: hidden; display: flex; }
+  .split .e { background: var(--easy); }
+  .split .x { background: var(--hard); }
+  .legend { display: flex; gap: 3vmin; font-size: 2.3vmin; color: var(--muted); }
+  .dot { display: inline-block; width: 1.6vmin; height: 1.6vmin; border-radius: 50%; margin-right: .8vmin; vertical-align: -.1vmin; }
+  #last { font-size: 2.4vmin; color: var(--muted); margin-top: auto; }
+  #last b { color: var(--text); font-weight: 500; }
+
+  .chart { display: flex; flex-direction: column; min-height: 0; }
+  .bars { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 1.8vmin; align-items: end; margin-top: 1.4vmin; min-height: 8vmin; }
+  .bar { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+  .stack { width: 70%; display: flex; flex-direction: column-reverse; border-radius: .9vmin; overflow: hidden; min-height: .5vmin; background: rgba(255,255,255,.12); }
+  .stack .e { background: var(--easy); }
+  .stack .x { background: var(--hard); }
+  .bar .m { font-size: 2.1vmin; color: var(--muted); margin-bottom: .8vmin; font-variant-numeric: tabular-nums; }
+  .bar .d { font-size: 2.2vmin; color: var(--muted); margin-top: 1vmin; }
+  .bar.today .d { color: var(--text); font-weight: 600; }
+
+  /* Hämtning */
+  .clock { position: relative; }
+  .panel.clock { background: none; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .panel.clock #time { text-shadow: 0 .4vmin 2.4vmin rgba(0,0,0,.3); }
+  #pickup { display: none; align-items: center; gap: 1.6vmin; margin-top: 2.4vmin; align-self: flex-start;
+    background: rgba(255,255,255,.10); border: 1px solid var(--line); border-radius: 1.6vmin; padding: 1.2vmin 1.2vmin 1.2vmin 2vmin; }
+  #pickup.on { display: flex; }
+  #pickup .pl { font-size: 2.3vmin; color: var(--muted); }
+  #pickup .pc { font-size: 4.2vmin; font-variant-numeric: tabular-nums; font-weight: 400; }
+  #pickup.soon { border-color: var(--hard); }
+  #pickup.soon .pc { color: var(--hard); }
+  #pickup.go { background: var(--hard); border-color: var(--hard); animation: pulse 1.2s ease-in-out infinite alternate; }
+  #pickup.go .pl, #pickup.go .pc { color: #111; }
+  @keyframes pulse { from { opacity: 1; } to { opacity: .65; } }
+  .x-btn { font-size: 3vmin; line-height: 1; color: var(--muted); background: none; border: 0; padding: 1vmin 1.4vmin; border-radius: 1vmin; }
+  #pickup.go .x-btn { color: #111; }
+  #pickupShow { display: none; position: absolute; right: 2.4vmin; bottom: 2.4vmin; font-size: 2.1vmin; color: rgba(235,242,252,.5);
+    background: none; border: 1px solid var(--line); border-radius: 1vmin; padding: .8vmin 1.4vmin; }
+  #pickupShow.on { display: block; }
+
+  /* Nu spelas */
+  .np { grid-column: 1 / -1; display: none; align-items: center; gap: 2.4vmin; padding: 1.8vmin 2.4vmin; cursor: pointer; }
+  .np.on { display: flex; }
+  @media (orientation: portrait) { .np { grid-column: auto; } }
+  #npArt { width: 9vmin; height: 9vmin; border-radius: 1vmin; object-fit: cover; background: rgba(255,255,255,.12); flex: none; }
+  .np .txt { flex: 1; min-width: 0; }
+  #npTitle { font-size: 3.2vmin; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #npArtist { font-size: 2.4vmin; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: .3vmin; }
+  .prog { height: .7vmin; background: rgba(255,255,255,.12); border-radius: .4vmin; margin-top: 1.2vmin; overflow: hidden; }
+  #npBar { height: 100%; width: 0; background: #1db954; }
+  .np .go { font-size: 2.2vmin; color: var(--text); flex: none; background: rgba(29,185,84,.85); padding: 1vmin 2.2vmin; border-radius: 3vmin; text-shadow: none; }
+  .np.paused #npBar { background: var(--muted); }
+  #npLogin { display: none; font-size: 2.6vmin; color: var(--text); background: #1db954; border: 0; border-radius: 3vmin; padding: 1.2vmin 3vmin; }
+
+  #status { position: fixed; right: 2vmin; bottom: 1.2vmin; font-size: 1.6vmin; color: rgba(235,242,252,.5); }
+</style>
+</head>
+<body>
+<div class="bg">
+  <div class="sky"></div>
+  <svg class="stars" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <g fill="#fff">
+      <circle cx="120" cy="80" r="1.6"/><circle cx="260" cy="190" r="1.1"/><circle cx="410" cy="60" r="1.4"/>
+      <circle cx="530" cy="240" r="1"/><circle cx="660" cy="120" r="1.8"/><circle cx="790" cy="40" r="1.2"/>
+      <circle cx="905" cy="210" r="1.1"/><circle cx="1010" cy="90" r="1.5"/><circle cx="1140" cy="160" r="1"/>
+      <circle cx="1260" cy="50" r="1.7"/><circle cx="1370" cy="230" r="1.2"/><circle cx="1490" cy="110" r="1.4"/>
+      <circle cx="340" cy="320" r=".9"/><circle cx="720" cy="300" r="1"/><circle cx="1210" cy="320" r=".9"/>
+      <circle cx="60" cy="260" r="1"/><circle cx="1560" cy="300" r="1.1"/><circle cx="980" cy="330" r=".8"/>
+    </g>
+  </svg>
+  <div class="sun"></div>
+  <div class="land">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path style="fill:var(--far)" d="M0 560 L120 470 L210 520 L330 400 L440 500 L560 430 L690 520 L800 380 L930 490 L1040 440 L1160 520 L1290 410 L1410 500 L1520 450 L1600 490 L1600 900 L0 900Z"/>
+      <path style="fill:var(--far);opacity:.55" d="M330 400 L360 440 L345 445 L372 470 L330 455 L300 430Z M800 380 L835 425 L815 428 L845 455 L800 440 L770 415Z M1290 410 L1320 450 L1300 452 L1328 478 L1290 465 L1262 440Z"/>
+      <path style="fill:var(--mid)" d="M0 650 C180 590 320 610 470 580 C620 550 760 620 920 600 C1080 580 1220 540 1380 570 C1480 590 1550 600 1600 590 L1600 900 L0 900Z"/>
+      <g style="fill:var(--far);opacity:.85">
+        <path d="M150 640 l14 -48 l14 48z M175 645 l11 -36 l11 36z M1180 600 l15 -52 l15 52z M1210 606 l11 -38 l11 38z M1235 602 l13 -44 l13 44z M640 600 l12 -42 l12 42z"/>
+      </g>
+      <path style="fill:var(--near)" d="M0 740 C220 690 420 720 640 700 C860 680 1060 730 1280 705 C1420 690 1530 700 1600 695 L1600 900 L0 900Z"/>
+      <g style="fill:var(--mid);opacity:.9">
+        <path d="M80 760 l20 -70 l20 70z M112 768 l16 -54 l16 54z M1420 730 l22 -76 l22 76z M1455 738 l17 -58 l17 58z M1495 735 l14 -48 l14 48z"/>
+      </g>
+    </svg>
+  </div>
+  <div class="photo" id="photo"></div>
+  <div class="tint"></div>
+  <div class="shade"></div>
+</div>
+<div class="wrap">
+  <section class="panel clock">
+    <div id="time">--:--</div>
+    <div id="date"></div>
+    <div id="week"></div>
+    <div id="pickup">
+      <span class="pl" id="pickupLabel">🚗 Åk och hämta om</span>
+      <span class="pc" id="pickupCount">--</span>
+      <button class="x-btn" id="pickupX" aria-label="Dölj idag">✕</button>
+    </div>
+    <button id="pickupShow">🚗 Visa hämtning</button>
+  </section>
+
+  <section class="panel weather">
+    <div class="label" id="wPlace">Väder</div>
+    <div class="now">
+      <div id="wIcon">·</div>
+      <div>
+        <div id="wTemp">–°</div>
+      </div>
+      <div>
+        <div id="wDesc">Hämtar…</div>
+        <div id="wWind"></div>
+      </div>
+    </div>
+    <div class="hours" id="hours"></div>
+  </section>
+
+  <section class="panel training">
+    <div class="stats">
+      <div class="label">Träning denna vecka</div>
+      <div class="big" id="tTotal">–</div>
+      <div>
+        <div class="split"><div class="e" id="sEasy"></div><div class="x" id="sHard"></div></div>
+        <div class="legend" style="margin-top:1.2vmin">
+          <span><span class="dot" style="background:var(--easy)"></span><span id="lEasy">Lugnt</span></span>
+          <span><span class="dot" style="background:var(--hard)"></span><span id="lHard">Hårdare</span></span>
+        </div>
+      </div>
+      <div id="last"></div>
+    </div>
+    <div class="chart">
+      <div class="label">Minuter per dag</div>
+      <div class="bars" id="bars"></div>
+    </div>
+  </section>
+
+  <section class="panel np" id="np">
+    <img id="npArt" alt="">
+    <div class="txt">
+      <div id="npTitle"></div>
+      <div id="npArtist"></div>
+      <div class="prog"><div id="npBar"></div></div>
+    </div>
+    <div class="go" id="npGo">Öppna Spotify ›</div>
+    <button id="npLogin">Logga in på Spotify</button>
+  </section>
+</div>
+<div id="status"></div>
+
+<script>
+// ===== Inställningar =====
+var CONFIG = {
+  place: "Västerås",          // namn som visas
+  lat: 59.61, lon: 16.55,     // ändra till hemma/kontoret
+  trainingUrl: "training.json",
+  weatherEveryMin: 30,
+  trainingEveryMin: 15,
+  pickupTime: "15:40",         // när du måste åka
+  pickupDays: [1, 2, 3, 4, 5], // 1 = måndag ... 5 = fredag
+  pickupFrom: "08:00",         // visa nedräkningen från denna tid
+  spotifyClientId: "",         // klistra in Client ID från developer.spotify.com
+  backgroundImage: "bg.jpg"    // tomt "" = ritat vinterlandskap
+};
+
+// ----- Dygnsfärger: mjuk övergång mellan nyckeltider -----
+// [timme, sky1, sky2, far, mid, near, glow, mörkning, stjärnor]
+var DAYCOLORS = [
+  [0,     "#070b1f", "#16213f", "#26324f", "#303f61", "#45577b", "#3a4f8a", .42, 1],
+  [6.5,   "#0e1433", "#2a2e5a", "#2c3657", "#394668", "#53628a", "#6b5aa0", .38, .7],
+  [7.75,  "#2b3a78", "#d48b9c", "#5d6390", "#8b8fb5", "#c9c8de", "#ffb38a", .22, 0],
+  [9.5,   "#4f7fc0", "#f1cfb6", "#9fb3cf", "#c8d6e7", "#eef3f9", "#ffe2b8", .16, 0],
+  [12,    "#4a8fd4", "#cfe5f6", "#a9bfd8", "#d3e0ee", "#f4f8fc", "#fff4dc", .18, 0],
+  [14.25, "#5a84c2", "#f2d6b4", "#a3b2cf", "#cdd5e6", "#f1f1f6", "#ffd39a", .18, 0],
+  [15.5,  "#3f437f", "#f2905e", "#7d6d95", "#a98fae", "#e3c9cf", "#ff9a5a", .2, 0],
+  [16.5,  "#1d2250", "#8a4f78", "#45406a", "#5b5482", "#8d86ad", "#d0688a", .28, .3],
+  [18,    "#0d1333", "#2a2c5c", "#2a3256", "#36416a", "#4e5c86", "#5560a8", .36, .8],
+  [24,    "#070b1f", "#16213f", "#26324f", "#303f61", "#45577b", "#3a4f8a", .42, 1]
+];
+function hex2rgb(h) { var n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function mix(a, b, t) { var x = hex2rgb(a), y = hex2rgb(b);
+  return "rgb(" + [0, 1, 2].map(function (i) { return Math.round(x[i] + (y[i] - x[i]) * t); }).join(",") + ")"; }
+function applyDayColors() {
+  var d = new Date(), h = d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600, i = 0;
+  while (i < DAYCOLORS.length - 2 && DAYCOLORS[i + 1][0] <= h) i++;
+  var a = DAYCOLORS[i], b = DAYCOLORS[i + 1], t = (h - a[0]) / (b[0] - a[0]);
+  t = t * t * (3 - 2 * t); // mjuk kurva
+  var names = ["--sky1", "--sky2", "--far", "--mid", "--near", "--glow"], st = document.documentElement.style;
+  names.forEach(function (n, k) { st.setProperty(n, mix(a[k + 1], b[k + 1], t)); });
+  st.setProperty("--dark", (a[7] + (b[7] - a[7]) * t).toFixed(3));
+  st.setProperty("--stars", (a[8] + (b[8] - a[8]) * t).toFixed(3));
+  var dark = a[7] + (b[7] - a[7]) * t;   // ljusare dag = tätare glas för läsbarhet
+  st.setProperty("--panel", "rgba(14, 20, 36, " + (0.46 - dark * 0.6).toFixed(3) + ")");
+}
+applyDayColors(); setInterval(applyDayColors, 30000);
+if (CONFIG.backgroundImage) {
+  var ph = document.getElementById("photo");
+  ph.style.backgroundImage = "url('" + CONFIG.backgroundImage + "')"; ph.className = "photo on";
+}
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k);
+  if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
+// ==========================
+
+var DAYS = ["sön", "mån", "tis", "ons", "tor", "fre", "lör"];
+var MONTHS = ["januari","februari","mars","april","maj","juni","juli","augusti","september","oktober","november","december"];
+function pad(n) { return (n < 10 ? "0" : "") + n; }
+function isoWeek(d) {
+  var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  var day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - y0) / 864e5 + 1) / 7);
+}
+function ymd(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+function fmtMin(m) { m = Math.round(m); var h = Math.floor(m / 60), r = m % 60; return h ? h + " h " + pad(r) : r + " min"; }
+function $(id) { return document.getElementById(id); }
+
+// ----- Klocka -----
+function tick() {
+  var d = new Date();
+  $("time").textContent = pad(d.getHours()) + ":" + pad(d.getMinutes());
+  var name = ["Söndag","Måndag","Tisdag","Onsdag","Torsdag","Fredag","Lördag"][d.getDay()];
+  $("date").textContent = name + " " + d.getDate() + " " + MONTHS[d.getMonth()];
+  $("week").textContent = "Vecka " + isoWeek(d);
+}
+tick(); setInterval(tick, 1000);
+
+// ----- Väder (SMHI snow1g) -----
+var SYMBOLS = {
+  1:["☀️","Klart"],2:["🌤️","Nästan klart"],3:["⛅","Växlande molnighet"],4:["🌥️","Halvklart"],
+  5:["☁️","Molnigt"],6:["☁️","Mulet"],7:["🌫️","Dimma"],8:["🌦️","Lätta regnskurar"],
+  9:["🌦️","Regnskurar"],10:["🌧️","Kraftiga regnskurar"],11:["⛈️","Åskskurar"],12:["🌨️","Lätta byar av snöblandat regn"],
+  13:["🌨️","Byar av snöblandat regn"],14:["🌨️","Kraftiga byar av snöblandat regn"],15:["🌨️","Lätta snöbyar"],
+  16:["🌨️","Snöbyar"],17:["❄️","Kraftiga snöbyar"],18:["🌧️","Lätt regn"],19:["🌧️","Regn"],
+  20:["🌧️","Kraftigt regn"],21:["⛈️","Åska"],22:["🌨️","Lätt snöblandat regn"],23:["🌨️","Snöblandat regn"],
+  24:["🌨️","Kraftigt snöblandat regn"],25:["🌨️","Lätt snöfall"],26:["❄️","Snöfall"],27:["❄️","Kraftigt snöfall"]
+};
+function sym(code) { return SYMBOLS[Math.round(code)] || ["·", ""]; }
+
+function loadWeather() {
+  var url = "https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/" +
+            CONFIG.lon + "/lat/" + CONFIG.lat + "/data.json";
+  fetch(url).then(function (r) { if (!r.ok) throw new Error("SMHI " + r.status); return r.json(); })
+    .then(function (j) {
+      var now = Date.now();
+      var series = j.timeSeries.filter(function (s) { return new Date(s.time).getTime() > now - 36e5; });
+      var cur = series[0].data;
+      $("wPlace").textContent = "Väder · " + CONFIG.place;
+      $("wTemp").textContent = Math.round(cur.air_temperature) + "°";
+      var s = sym(cur.symbol_code);
+      $("wIcon").textContent = s[0];
+      $("wDesc").textContent = s[1];
+      $("wWind").textContent = "Vind " + Math.round(cur.wind_speed) + " m/s";
+      var html = "";
+      for (var i = 1; i <= 6 && i * 2 < series.length; i++) {
+        var p = series[i * 2], t = new Date(p.time);
+        html += '<div class="hour"><div class="h">' + pad(t.getHours()) + '</div><div class="i">' +
+                sym(p.data.symbol_code)[0] + '</div><div class="t">' + Math.round(p.data.air_temperature) + '°</div></div>';
+      }
+      $("hours").innerHTML = html;
+    })
+    .catch(function (e) { $("wDesc").textContent = "Inget väder just nu"; console.log(e); });
+}
+loadWeather(); setInterval(loadWeather, CONFIG.weatherEveryMin * 60000);
+
+// ----- Träning (training.json från GitHub Action) -----
+var DEMO = { demo: true, updated: null, activities: (function () {
+  var a = [], d = new Date(), wd = (d.getDay() + 6) % 7;
+  var sample = [[0,"Löpning",45,132],[1,"SkiErg",30,128],[2,"Löpning",40,155],[4,"Cykel",60,125]];
+  sample.forEach(function (s) { if (s[0] <= wd) { var x = new Date(d); x.setDate(d.getDate() - wd + s[0]);
+    a.push({ date: ymd(x), name: s[1], minutes: s[2], avg_hr: s[3] }); } });
+  return a; })(), easy_hr: 140 };
+
+function renderTraining(data) {
+  var easyHr = data.easy_hr || 140;
+  var today = new Date(), wd = (today.getDay() + 6) % 7;
+  var monday = new Date(today); monday.setDate(today.getDate() - wd);
+  var days = [];
+  for (var i = 0; i < 7; i++) { var d = new Date(monday); d.setDate(monday.getDate() + i);
+    days.push({ key: ymd(d), label: DAYS[d.getDay()], easy: 0, hard: 0, today: i === wd }); }
+  var totE = 0, totH = 0, last = null;
+  (data.activities || []).forEach(function (a) {
+    var day = days.filter(function (x) { return x.key === a.date; })[0];
+    if (!last || a.date >= last.date) last = a;
+    if (!day) return;
+    var easy = !a.avg_hr || a.avg_hr < easyHr;
+    if (easy) { day.easy += a.minutes; totE += a.minutes; } else { day.hard += a.minutes; totH += a.minutes; }
+  });
+  var tot = totE + totH;
+  var h = Math.floor(tot / 60), m = Math.round(tot % 60);
+  $("tTotal").innerHTML = (h ? h + "<small>h</small> " : "") + m + "<small>min</small>";
+  var pe = tot ? totE / tot * 100 : 0;
+  $("sEasy").style.width = pe + "%"; $("sHard").style.width = (tot ? 100 - pe : 0) + "%";
+  $("lEasy").textContent = "Lugnt " + fmtMin(totE) + (tot ? " (" + Math.round(pe) + " %)" : "");
+  $("lHard").textContent = "Hårdare " + fmtMin(totH);
+  $("last").innerHTML = last ? "Senast: <b>" + last.name + "</b> · " + fmtMin(last.minutes) +
+    (last.avg_hr ? " · snittpuls " + Math.round(last.avg_hr) : "") : "Inga pass än";
+  var max = Math.max.apply(null, days.map(function (x) { return x.easy + x.hard; }).concat([30]));
+  $("bars").innerHTML = days.map(function (x) {
+    var t = x.easy + x.hard, hp = t / max * 100;
+    return '<div class="bar' + (x.today ? ' today' : '') + '"><div class="m">' + (t ? Math.round(t) : "") + '</div>' +
+      '<div class="stack" style="height:' + Math.max(hp, 1) + '%">' +
+      '<div class="e" style="flex:' + x.easy + '"></div><div class="x" style="flex:' + x.hard + '"></div></div>' +
+      '<div class="d">' + x.label + '</div></div>';
+  }).join("");
+  $("status").textContent = data.demo ? "Exempeldata – koppla Strava enligt README" :
+    (data.updated ? "Strava uppdaterad " + data.updated.slice(11, 16) : "");
+}
+
+function loadTraining() {
+  fetch(CONFIG.trainingUrl + "?t=" + Date.now())
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(renderTraining)
+    .catch(function () { renderTraining(DEMO); });
+}
+loadTraining(); setInterval(loadTraining, CONFIG.trainingEveryMin * 60000);
+
+// ----- Nedräkning till hämtning -----
+function atToday(hhmm) { var p = hhmm.split(":"), d = new Date(); d.setHours(+p[0], +p[1], 0, 0); return d; }
+function pickupTick() {
+  var now = new Date(), wd = now.getDay();
+  var isDay = CONFIG.pickupDays.indexOf(wd) >= 0;
+  var target = atToday(CONFIG.pickupTime), from = atToday(CONFIG.pickupFrom);
+  var hidden = store("pickupHidden") === ymd(now);
+  var left = target - now;
+  var active = isDay && now >= from && left > -30 * 60000;   // syns till 30 min efter
+  var box = $("pickup");
+  box.className = active && !hidden ? "on" : "";
+  $("pickupShow").className = active && hidden ? "on" : "";
+  if (!active || hidden) return;
+  if (left <= 0) {
+    box.className = "on go";
+    $("pickupLabel").textContent = "🚗 Dags att åka!";
+    $("pickupCount").textContent = "";
+  } else {
+    var s = Math.floor(left / 1000), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+    $("pickupLabel").textContent = "🚗 Åk om";
+    $("pickupCount").textContent = (h ? h + ":" + pad(m) : m) + ":" + pad(sec);
+    if (left < 15 * 60000) box.className = "on soon";
+  }
+}
+$("pickupX").onclick = function () { store("pickupHidden", ymd(new Date())); pickupTick(); };
+$("pickupShow").onclick = function () { store("pickupHidden", null); pickupTick(); };
+pickupTick(); setInterval(pickupTick, 1000);
+
+// ----- Spotify: nu spelas (PKCE, ingen server behövs) -----
+var SP = { redirect: location.origin + location.pathname, scope: "user-read-currently-playing user-read-playback-state" };
+var npState = null;
+
+function b64url(buf) {
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function spLogin() {
+  var arr = new Uint8Array(48); crypto.getRandomValues(arr);
+  var verifier = b64url(arr);
+  store("spVerifier", verifier);
+  crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)).then(function (h) {
+    location.href = "https://accounts.spotify.com/authorize?" + new URLSearchParams({
+      client_id: CONFIG.spotifyClientId, response_type: "code", redirect_uri: SP.redirect,
+      scope: SP.scope, code_challenge_method: "S256", code_challenge: b64url(h)
+    }).toString();
+  });
+}
+function spToken(params) {
+  params.client_id = CONFIG.spotifyClientId;
+  return fetch("https://accounts.spotify.com/api/token", {
+    method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(params).toString()
+  }).then(function (r) { if (!r.ok) throw new Error("token " + r.status); return r.json(); })
+    .then(function (t) {
+      store("spAccess", t.access_token);
+      store("spExpires", String(Date.now() + (t.expires_in - 60) * 1000));
+      if (t.refresh_token) store("spRefresh", t.refresh_token);
+      return t.access_token;
+    });
+}
+function spAccess() {
+  if (store("spAccess") && Date.now() < +store("spExpires")) return Promise.resolve(store("spAccess"));
+  if (!store("spRefresh")) return Promise.reject(new Error("login"));
+  return spToken({ grant_type: "refresh_token", refresh_token: store("spRefresh") });
+}
+function showLogin() {
+  $("np").className = "panel np on"; $("npLogin").style.display = "block";
+  $("npGo").style.display = "none"; $("npTitle").textContent = "Spotify";
+  $("npArtist").textContent = "Logga in en gång för att visa vad som spelas"; $("npArt").removeAttribute("src");
+}
+function spPoll() {
+  if (!CONFIG.spotifyClientId) return;
+  spAccess().then(function (tok) {
+    return fetch("https://api.spotify.com/v1/me/player/currently-playing?additional_types=episode",
+      { headers: { Authorization: "Bearer " + tok } });
+  }).then(function (r) {
+    if (r.status === 401) { store("spAccess", null); throw new Error("retry"); }
+    if (r.status === 204 || !r.ok) return null;
+    return r.json();
+  }).then(function (j) {
+    $("npLogin").style.display = "none"; $("npGo").style.display = "block";
+    if (!j || !j.item) { npState = null; $("np").className = "panel np"; return; }
+    var it = j.item, ep = it.type === "episode";
+    var imgs = ep ? (it.images || it.show.images) : it.album.images;
+    npState = { progress: j.progress_ms, duration: it.duration_ms, playing: j.is_playing, at: Date.now() };
+    $("npTitle").textContent = it.name;
+    $("npArtist").textContent = ep ? it.show.name : it.artists.map(function (a) { return a.name; }).join(", ");
+    if (imgs && imgs.length) { var src = (imgs[1] || imgs[0]).url; if ($("npArt").src !== src) $("npArt").src = src; }
+    $("np").className = "panel np on" + (j.is_playing ? "" : " paused");
+    npProgress();
+  }).catch(function (e) {
+    if (e.message === "retry") return;
+    if (e.message === "login" || /token 4/.test(e.message)) { store("spRefresh", null); showLogin(); }
+  });
+}
+function npProgress() {
+  if (!npState) return;
+  var p = npState.progress + (npState.playing ? Date.now() - npState.at : 0);
+  $("npBar").style.width = Math.min(100, p / npState.duration * 100) + "%";
+}
+function openSpotify() {
+  if (window.PortalApp) { PortalApp.openSpotify(); return; }   // inne i Portal-appen
+  // I vanlig webbläsare: starta Spotify-appen på Android; faller tillbaka på spotify:-länk
+  var fallback = setTimeout(function () { location.href = "spotify:"; }, 1500);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) clearTimeout(fallback); }, { once: true });
+  location.href = "intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.spotify.music;end";
+}
+$("np").onclick = function (e) { if (e.target.id === "npLogin") { spLogin(); return; } if (npState) openSpotify(); };
+
+(function spInit() {
+  if (!CONFIG.spotifyClientId) return;
+  var code = new URLSearchParams(location.search).get("code");
+  var start = code && store("spVerifier")
+    ? spToken({ grant_type: "authorization_code", code: code, redirect_uri: SP.redirect, code_verifier: store("spVerifier") })
+        .then(function () { store("spVerifier", null); history.replaceState(null, "", SP.redirect); })
+    : Promise.resolve();
+  start.then(spPoll, showLogin);
+  setInterval(spPoll, 8000);
+  setInterval(npProgress, 1000);
+})();
+
+// Ladda om sidan en gång per natt så den aldrig fastnar
+setInterval(function () { var d = new Date(); if (d.getHours() === 3 && d.getMinutes() === 0) location.reload(); }, 60000);
+</script>
+</body>
+</html>
