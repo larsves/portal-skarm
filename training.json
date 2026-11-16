@@ -1,0 +1,55 @@
+{
+ "updated": "2026-11-16T11:24",
+ "easy_hr": 140,
+ "activities": [
+  {
+   "date": "2026-11-03",
+   "name": "Löpning vid lunch",
+   "type": "Run",
+   "minutes": 54.2,
+   "avg_hr": null
+  },
+  {
+   "date": "2026-11-05",
+   "name": "Löpning vid lunch",
+   "type": "Run",
+   "minutes": 55.6,
+   "avg_hr": 146.6
+  },
+  {
+   "date": "2026-11-08",
+   "name": "Löpning på eftermiddagen",
+   "type": "Run",
+   "minutes": 58.3,
+   "avg_hr": 141.8
+  },
+  {
+   "date": "2026-11-10",
+   "name": "Löpning vid lunch",
+   "type": "Run",
+   "minutes": 24.2,
+   "avg_hr": 145.6
+  },
+  {
+   "date": "2026-11-10",
+   "name": "Längdskidåkning vid lunch",
+   "type": "NordicSki",
+   "minutes": 4.2,
+   "avg_hr": 150.8
+  },
+  {
+   "date": "2026-11-12",
+   "name": "Löpning vid lunch",
+   "type": "Run",
+   "minutes": 38.1,
+   "avg_hr": 149.4
+  },
+  {
+   "date": "2026-11-15",
+   "name": "Löpning på eftermiddagen",
+   "type": "Run",
+   "minutes": 57.3,
+   "avg_hr": 151.3
+  }
+ ]
+}
