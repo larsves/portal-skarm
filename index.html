@@ -363,8 +363,22 @@ var DEMO = { demo: true, updated: null, activities: (function () {
   var a = [], d = new Date(), wd = (d.getDay() + 6) % 7;
   var sample = [[0,"Löpning",45,132],[1,"SkiErg",30,128],[2,"Löpning",40,155],[4,"Cykel",60,125]];
   sample.forEach(function (s) { if (s[0] <= wd) { var x = new Date(d); x.setDate(d.getDate() - wd + s[0]);
-    a.push({ date: ymd(x), name: s[1], minutes: s[2], avg_hr: s[3] }); } });
+    a.push({ date: ymd(x), name: s[1], type: s[1], minutes: s[2], avg_hr: s[3] }); } });
   return a; })(), easy_hr: 140 };
+
+var SPORTS = { Run: "Löpning", TrailRun: "Terränglöpning", VirtualRun: "Löpband", Walk: "Promenad", Hike: "Vandring",
+  Ride: "Cykel", VirtualRide: "Cykel inne", GravelRide: "Grus", MountainBikeRide: "MTB", EBikeRide: "Elcykel",
+  NordicSki: "Längdskidor", BackcountrySki: "Turskidor", AlpineSki: "Utförsåkning", RollerSki: "Rullskidor",
+  Swim: "Simning", WeightTraining: "Styrka", Workout: "Träning", Rowing: "Rodd", VirtualRow: "Rodd inne",
+  Elliptical: "Crosstrainer", Yoga: "Yoga", IceSkate: "Skridskor", Crossfit: "Crossfit", Soccer: "Fotboll" };
+function sportName(a) { return SPORTS[a.type] || a.type || a.name; }
+function dayLabel(iso) {
+  var p = iso.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]), t = new Date(); t.setHours(0, 0, 0, 0);
+  var diff = Math.round((t - d) / 864e5);
+  if (diff === 0) return "idag";
+  if (diff === 1) return "igår";
+  return DAYS[d.getDay()] + " " + d.getDate() + " " + MONTHS[d.getMonth()].slice(0, 3);
+}
 
 function renderTraining(data) {
   var easyHr = data.easy_hr || 140;
@@ -392,7 +406,7 @@ function renderTraining(data) {
   $("sEasy").style.width = pe + "%"; $("sHard").style.width = (tot ? 100 - pe : 0) + "%";
   $("lEasy").textContent = "Lugnt " + fmtMin(totE) + (tot ? " (" + Math.round(pe) + " %)" : "");
   $("lHard").textContent = "Hårdare " + fmtMin(totH);
-  $("last").innerHTML = last ? "Senast: <b>" + last.name + "</b> · " + fmtMin(last.minutes) +
+  $("last").innerHTML = last ? "Senast: <b>" + sportName(last) + "</b> · " + dayLabel(last.date) + " · " + fmtMin(last.minutes) +
     (last.avg_hr ? " · ♥ " + Math.round(last.avg_hr) : "") : "Inga pass än";
   var max = Math.max.apply(null, days.map(function (x) { return x.easy + x.hard; }).concat([30]));
   $("bars").innerHTML = days.map(function (x) {
