@@ -10,8 +10,8 @@ android {
         applicationId = "se.larsves.portalskarm"
         minSdk = 28          // Portal+ gen 1 kör Android 9
         targetSdk = 29       // Metas rekommendation för nya Portal-appar
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     signingConfigs {

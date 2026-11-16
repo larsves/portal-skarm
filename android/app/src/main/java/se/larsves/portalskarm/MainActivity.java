@@ -56,12 +56,17 @@ public class MainActivity extends Activity {
             @Override
             public void onReceivedError(WebView view, WebResourceRequest req, WebResourceError err) {
                 // Ingen uppkoppling? Försök igen om 30 sekunder.
-                if (req.isForMainFrame()) handler.postDelayed(() -> web.loadUrl(HOME_URL), 30_000);
+                if (req.isForMainFrame()) handler.postDelayed(() -> web.loadUrl(freshUrl()), 30_000);
             }
         });
 
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
-        else web.loadUrl(HOME_URL);
+        else web.loadUrl(freshUrl());
+    }
+
+    /** Lägger till en tidsstämpel så att appen alltid hämtar senaste versionen av sidan. */
+    private static String freshUrl() {
+        return HOME_URL + "?v=" + System.currentTimeMillis();
     }
 
     private void openSpotify() {
