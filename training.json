@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-16T11:25",
+ "updated": "2026-11-16T21:22",
  "easy_hr": 150,
  "activities": [
   {
@@ -50,6 +50,13 @@
    "type": "Run",
    "minutes": 57.3,
    "avg_hr": 151.3
+  },
+  {
+   "date": "2026-11-16",
+   "name": "Träningspass vid lunch",
+   "type": "Workout",
+   "minutes": 30.1,
+   "avg_hr": 155.6
   }
  ]
 }
