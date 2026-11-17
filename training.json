@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-17T13:25",
+ "updated": "2026-11-17T22:19",
  "easy_hr": 150,
  "activities": [
   {
@@ -50,6 +50,13 @@
    "type": "Workout",
    "minutes": 30.1,
    "avg_hr": 155.6
+  },
+  {
+   "date": "2026-11-17",
+   "name": "Träningspass på eftermiddagen",
+   "type": "Workout",
+   "minutes": 42.9,
+   "avg_hr": 131.4
   }
  ]
 }
