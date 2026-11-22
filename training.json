@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-22T02:17",
+ "updated": "2026-11-22T09:47",
  "easy_hr": 150,
  "activities": [
   {
@@ -85,6 +85,13 @@
    "type": "NordicSki",
    "minutes": 37.5,
    "avg_hr": 154.1
+  },
+  {
+   "date": "2026-11-22",
+   "name": "Längdskidåkning på morgonen",
+   "type": "NordicSki",
+   "minutes": 41.2,
+   "avg_hr": 154.9
   }
  ]
 }
