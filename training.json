@@ -1,21 +1,7 @@
 {
- "updated": "2026-11-24T11:24",
+ "updated": "2026-11-24T21:51",
  "easy_hr": 150,
  "activities": [
-  {
-   "date": "2026-11-10",
-   "name": "Löpning vid lunch",
-   "type": "Run",
-   "minutes": 24.2,
-   "avg_hr": 145.6
-  },
-  {
-   "date": "2026-11-10",
-   "name": "Längdskidåkning vid lunch",
-   "type": "NordicSki",
-   "minutes": 4.2,
-   "avg_hr": 150.8
-  },
   {
    "date": "2026-11-12",
    "name": "Löpning vid lunch",
